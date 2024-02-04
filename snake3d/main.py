@@ -2,11 +2,10 @@ import math
 import pyglet
 from pyglet.gl import *
 from pyglet.window import key
-from d3primatives import *
+from primitives import *
 
 # Create a window object
 window = pyglet.window.Window(800, 600, "Snake3D")
-
 keyboard = key.KeyStateHandler()
 window.push_handlers(keyboard)
 
@@ -30,12 +29,10 @@ def on_draw():
     for c in cubes:
         glPushMatrix()
         glTranslatef(*c.i3)
-
         glBegin(GL_QUADS)
         c.draw()
         glEnd()
         glPopMatrix()
-
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
     glColor3f(1,1,1)
     glLineWidth(2)
@@ -45,11 +42,11 @@ def on_draw():
 
     glPointSize(2)
     glColor3f(1,1,1)
-
-    glBegin(GL_LINES)
-    for l in lines:
+    glBegin(GL_POINTS)
+    for l in points:
         glVertex3f(*l)
     glEnd()
+
 
 @window.event
 def on_resize(width, height):
@@ -158,14 +155,6 @@ for z in range(0, numx*size*2, spacing):
 world_box = Cube((0,0,0), 800)
 world_box.colors = ((0.7,0.7,0.7), (0.4, 0.4, 0.4))*6
 
-lines = [(-800, 800, 800),
-         ( 800, 800, 800),
-         (-800, 800, 800),
-         ( 800,-800, 800),
-         (-800, 800, 800),
-         ( 800, 800,-800)
-        ]
-
 points = []
 world_grid_size = 800
 step = 100
@@ -177,6 +166,5 @@ for x in range(-world_grid_size, world_grid_size, step):
 
 
 pyglet.clock.schedule_interval(main_update, 1/60.0)
-
 do_view_state()
 pyglet.app.run()
