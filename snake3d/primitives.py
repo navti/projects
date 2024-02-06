@@ -76,7 +76,7 @@ class Cube():
     def collidePoint(self, vec3):
         collision = True
 
-        for i in xrange(3):
+        for i in range(3):
             collision &= (self.pos[i] - self.size) < vec3[i] < (self.pos[i] + self.size)
 
         return collision
