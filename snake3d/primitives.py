@@ -1,11 +1,14 @@
 from pyglet.gl import glColor3f, glVertex3f
 
+
 __all__ = ["Cube"]
 
+
 class Cube():
-    def __init__(self, i3, size):
+    def __init__(self, pos, size, angle=[0, 0, 0]):
         self.size = size
-        self.i3 = i3
+        self.pos = pos
+        self.angle = angle
         self.colors = [
                 (1,0,0),
                 (0.5,0,0),
@@ -73,7 +76,10 @@ class Cube():
     def collidePoint(self, vec3):
         collision = True
 
-        for i in range(3):
-            collision &= (self.i3[i] - self.size) < vec3[i] < (self.i3[i] + self.size)
+        for i in xrange(3):
+            collision &= (self.pos[i] - self.size) < vec3[i] < (self.pos[i] + self.size)
 
         return collision
+
+    def __repr__(self):
+        return "<Cube((%d, %d, %d))>"%(self.pos[0], self.pos[1], self.pos[2])

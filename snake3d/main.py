@@ -3,6 +3,7 @@ import pyglet
 from pyglet.gl import *
 from pyglet.window import key
 from primitives import *
+from player import Player
 
 # Create a window object
 window = pyglet.window.Window(800, 600, "Snake3D")
