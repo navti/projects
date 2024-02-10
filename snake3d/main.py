@@ -1,5 +1,6 @@
 import math
 import random
+from threading import Thread
 import pyglet
 from pyglet.gl import *
 from pyglet.window import key
@@ -21,7 +22,43 @@ fps_display = pyglet.clock.ClockDisplay(helv_font, color=(1, 0, 0, 0.3))
 fov = 65
 world_size = 800
 n_food = 4
-player = Player([0,0,-400])
+snakes = [Player([0,0,-400]), Player([0,0,0],network_player=True)]
+player = snakes[0]
+
+import socket
+import struct
+from network_utils import *
+
+def network_update():
+    s = socket.socket()
+    s.connect(("localhost", 4588))
+
+    # Initial handshake
+    s.send(struct.pack(">ii", GIVE_ID, GIVE_ID_N))
+    d = s.recv(4)
+    my_id = struct.unpack(">i", d)[0]
+    print("My id is: {%d}"%my_id)
+
+    while True:
+        tail = player.tail[:]
+        header = struct.pack(">ii", my_id, len(tail))
+        data = ""
+        for block in tail:
+            data += struct.pack(">iiii", TAIL_BLOCK, *map(int, block.pos))
+        s.sendall(header+data)
+
+        n_user_data_objects = struct.unpack(">i", s.recv(4))[0]
+        for i in range(n_user_data_objects):
+            user_id, n_objs = RecieveHeader(s)
+            values = RecieveObjects(s, n_objs)
+            if user_id != my_id:
+                snakes[1].tail = map(lambda v: Cube([v[1],v[2],v[3]], 10),
+                                     grouper(values, 4))
+    s.close()
+
+t = Thread(target=network_update)
+t.setDaemon(True)
+t.start()
 
 
 # Use a decorater to register a custom action for the on_draw event
@@ -29,6 +66,7 @@ player = Player([0,0,-400])
 def on_draw():
     # Clear the current GL Window
     window.clear()
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
     dead = []
     pos = map(lambda x: -x, player.pos)
@@ -52,7 +90,8 @@ def on_draw():
         AddRandomFood()
         del food[iv-i]
 
-    player.draw()
+    for snake in snakes:
+        snake.draw()
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
     glColor3f(1,1,1)
@@ -60,6 +99,7 @@ def on_draw():
     glBegin(GL_QUADS)
     world_box.draw()
     glEnd()
+
     glPointSize(2)
     glColor3f(1,1,1)
     glBegin(GL_POINTS)
@@ -79,6 +119,7 @@ def on_resize(width, height):
     gluPerspective(fov, aspect_ratio, 1, 2000)
 
     return pyglet.event.EVENT_HANDLED
+
 
 def do_view_state():
     glMatrixMode(GL_MODELVIEW)
@@ -121,10 +162,13 @@ def move_facing(dist):
         player.tail.insert(0, Cube(pos, 10))
         if len(player.tail) > player.length:
             player.tail.pop()
+
     do_view_state()
 
+
 def main_update(dt):
-    move_facing(player.move_rate*dt)
+    if keyboard[key.SPACE]:
+        move_facing(player.move_rate*dt)
 
     if keyboard[key.W]:
         player.angle[0] -= (player.angle[0] > -50)*dt*player.rotation_rate[0]
