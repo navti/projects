@@ -3,7 +3,7 @@ import struct
 import random
 import itertools
 from threading import Thread
-
+from copy import deepcopy
 from network_utils import *
 
 
@@ -27,8 +27,9 @@ def ClientHandler(client):
                 client_states[client_id] = grouper(values, 4)
 
             # Send the number of user states we're going to send
-            client.sendall(struct.pack(">i", len(client_states)))
-            for client_id_key, state in client_states.items():
+            states = deepcopy(client_states.items())
+            client.sendall(struct.pack(">i", len(states)))
+            for client_id_key, state in states:
                 header = struct.pack(">ii", client_id_key, len(state))
                 data = struct.pack(">"+"i"*len(state)*4, *itertools.chain(*state))
                 client.sendall(header+data)
@@ -38,6 +39,7 @@ def ClientHandler(client):
         print("Issue communicating with client.")
 
     finally:
+        del client_states[client_id]
         client.close()
 
 
