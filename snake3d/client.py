@@ -23,7 +23,7 @@ while True:
     n_user_data_objects = struct.unpack(">i", s.recv(4))[0]
     print("There are %d user data objects coming"%n_user_data_objects)
     for i in range(n_user_data_objects):
-        user_id, n_objs = RecieveHeader(s)
+        user_id, n_objs = ReceiveHeader(s)
         print(user_id, n_objs)
-        values = RecieveObjects(s, n_objs)
+        values = ReceiveObjects(s, n_objs)
         print(grouper(values, 4))

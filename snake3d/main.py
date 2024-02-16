@@ -53,11 +53,11 @@ def network_update():
         n_user_data_objects = struct.unpack(">i", s.recv(4))[0]
         for i in range(n_user_data_objects):
             if DEBUG: print("Recieving header")
-            user_id, n_objs = RecieveHeader(s)
+            user_id, n_objs = ReceiveHeader(s)
             # No need to try to recieve objects if there aren't any coming
             if n_objs:
                 if DEBUG: print("Recieving objects")
-                values = RecieveObjects(s, n_objs)
+                values = ReceiveObjects(s, n_objs)
                 if user_id != my_id:
                     sn = snakes.setdefault(user_id,
                             Player([0,0,0], network_player=True))

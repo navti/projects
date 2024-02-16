@@ -13,17 +13,17 @@ client_states = {}
 def ClientHandler(client):
     # Handshake
     try:
-        client_id, n_objs = RecieveHeader(client)
+        client_id, n_objs = ReceiveHeader(client)
         if client_id == GIVE_ID and n_objs == GIVE_ID_N:
             new_id = random.randrange(123, 893750)
             print("Giving out id {%d}"%new_id)
             client.sendall(struct.pack(">i", new_id))
-            client_id, n_objs = RecieveHeader(client)
+            client_id, n_objs = ReceiveHeader(client)
 
         while client_id != CLOSE_CONN:
             # Only listen if there's somthing to listen for
             if n_objs:
-                values = RecieveObjects(client, n_objs)
+                values = ReceiveObjects(client, n_objs)
                 client_states[client_id] = grouper(values, 4)
 
             # Send the number of user states we're going to send
@@ -34,7 +34,7 @@ def ClientHandler(client):
                 data = struct.pack(">"+"i"*len(state)*4, *itertools.chain(*state))
                 client.sendall(header+data)
 
-            client_id, n_objs = RecieveHeader(client)
+            client_id, n_objs = ReceiveHeader(client)
     except:
         print("Issue communicating with client.")
 
