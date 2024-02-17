@@ -51,12 +51,15 @@ def network_update():
 
         if DEBUG: print("Recieving n for udo")
         n_user_data_objects = struct.unpack(">i", s.recv(4))[0]
+        if DEBUG: print("n = %d"%n_user_data_objects)
+
         for i in range(n_user_data_objects):
             if DEBUG: print("Recieving header")
             user_id, n_objs = ReceiveHeader(s)
+            if DEBUG: print("uid: %d, n_objs: %d"%(user_id, n_objs))
             # No need to try to recieve objects if there aren't any coming
             if n_objs:
-                if DEBUG: print("Recieving objects")
+                if DEBUG: print("Recieving %d objects"%n_objs)
                 values = ReceiveObjects(s, n_objs)
                 if user_id != my_id:
                     sn = snakes.setdefault(user_id,
