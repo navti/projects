@@ -53,6 +53,7 @@ def network_update():
         n_user_data_objects = struct.unpack(">i", s.recv(4))[0]
         if DEBUG: print("n = %d"%n_user_data_objects)
 
+        last_ids = []
         for i in range(n_user_data_objects):
             if DEBUG: print("Recieving header")
             user_id, n_objs = ReceiveHeader(s)
@@ -62,10 +63,15 @@ def network_update():
                 if DEBUG: print("Recieving %d objects"%n_objs)
                 values = ReceiveObjects(s, n_objs)
                 if user_id != my_id:
+                    last_ids.append(user_id)
                     sn = snakes.setdefault(user_id,
                             Player([0,0,0], network_player=True))
                     sn.tail = map(lambda v: Cube([v[1],v[2],v[3]], 10),
                                          grouper(values, 4))
+
+        for key in snakes.keys():
+            if key != 0 and key not in last_ids:
+                del snakes[key]
 
     s.close()
 
