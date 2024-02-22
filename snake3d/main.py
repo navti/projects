@@ -191,8 +191,7 @@ def move_facing(dist):
 
 
 def main_update(dt):
-    if keyboard[key.SPACE]:
-        move_facing(player.move_rate*dt)
+    move_facing(player.move_rate*dt)
 
     if keyboard[key.W]:
         player.angle[0] -= (player.angle[0] > -50)*dt*player.rotation_rate[0]
