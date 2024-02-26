@@ -28,7 +28,7 @@ class Player:
 
     @property
     def inv_pos(self):
-        return map(lambda x: -x, self.pos)
+        return [-x for x in self.pos]
 
     def draw(self):
         # Draw all but the first segment so that it's not drawing right on

@@ -19,9 +19,8 @@ glClearColor(.2,.2,.2,1)
 glEnable(GL_DEPTH_TEST)
 
 helv_font=pyglet.font.load("Helvetica", 14)
-fps_display = pyglet.clock.ClockDisplay(helv_font, color=(1, 0, 0, 0.3))
 
-fov = 65 #40
+fov = 65
 world_size = 800
 n_food = 4
 snakes = {0: Player([0, 0, -400])}
@@ -56,7 +55,7 @@ def network_update():
         header = struct.pack(">ii", my_id, len(tail))
         data = ""
         for block in tail:
-            data += struct.pack(">iiii", TAIL_BLOCK, *map(int, block.pos))
+            data += struct.pack(">iiii", TAIL_BLOCK, *tuple(map(int, block.pos)))
         if DEBUG: print("Sending my data")
         s.sendall(header+data)
 
@@ -77,7 +76,7 @@ def network_update():
                     last_ids.append(user_id)
                     sn = snakes.setdefault(user_id,
                             Player([0,0,0], network_player=True))
-                    sn.tail = map(lambda v: Cube([v[1],v[2],v[3]], 10), values)
+                    sn.tail = [Cube([v[1],v[2],v[3]], 10) for v in values]
 
         for key in snakes.keys():
             if key != 0 and key not in last_ids:
@@ -104,7 +103,7 @@ def on_draw():
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
     dead = []
-    pos = map(lambda x: -x, player.pos)
+    pos = [-x for x in player.pos]
 
     for i,c in enumerate(food):
         if c.collidePoint(pos):
@@ -192,7 +191,7 @@ def move_facing(dist):
                     (player.pos[2] < -world_size and -world_size) or player.pos[2]
 
     # Update the player's tail (add new point and remove from end)
-    pos = map(lambda x: -x, player.pos)
+    pos = [-x for x in player.pos]
     if not player.tail or euclidean_dist(pos, player.tail[0].pos) > player.chunk_dist:
         player.tail.insert(0, Cube(pos, 10))
         if len(player.tail) > player.length:
