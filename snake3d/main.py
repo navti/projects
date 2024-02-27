@@ -53,11 +53,11 @@ def network_update():
         if DEBUG: print("Going")
         tail = player.tail[:]
         header = struct.pack(">ii", my_id, len(tail))
-        data = ""
+        data = b""
         for block in tail:
             data += struct.pack(">iiii", TAIL_BLOCK, *tuple(map(int, block.pos)))
         if DEBUG: print("Sending my data")
-        s.sendall(header+data)
+        s.sendall(header + data)
 
         if DEBUG: print("Recieving n for udo")
         n_user_data_objects = struct.unpack(">i", s.recv(4))[0]

@@ -10,11 +10,11 @@ FOOD_BLOCK = 0b10
 
 
 def ExpectRecv(connection, n):
-    data = ""
+    data = b""
     start = time.time()
     while len(data) < n and time.time() - start < 0.5:
         if select.select([connection],[],[], 0.5)[0]:
-            data += connection.recv(n-len(data))
+            data += connection.recv(n - len(data))
     return data
 
 
