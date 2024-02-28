@@ -77,10 +77,14 @@ def network_update():
                     sn = snakes.setdefault(user_id,
                             Player([0,0,0], network_player=True))
                     sn.tail = [Cube([v[1],v[2],v[3]], 10) for v in values]
-
+        # Clean up old, dead snakes
+        dead_keys = []
         for key in snakes.keys():
             if key != 0 and key not in last_ids:
-                del snakes[key]
+                dead_keys.append(key)
+
+        for key in dead_keys:
+            del snakes[key]
 
     s.close()
 
