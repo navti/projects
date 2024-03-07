@@ -34,18 +34,42 @@ class GameOfLife(pyglet.window.Window):
                 self.sprites[(r,c)] = BlueTile(x=x, y=y, batch=self.batch)
     
     def on_mouse_press(self, x, y, button, modifiers):
-        if button & mouse.LEFT:
+        if self.game_state == 0 and (button & mouse.LEFT):
             c = x // SPRITE_WIDTH
             r = y // SPRITE_HEIGHT
             self.toggle_tile(r,c)
 
     def on_key_press(self, symbol, modifiers):
-        if symbol & key.SPACE:
+        if symbol & key.RETURN:
             self.game_state = 1 - self.game_state
+        elif symbol & key.SPACE:
+            self.clear_board()
 
     def on_draw(self):
         self.clear()
         self.batch.draw()
+
+    def clear_board(self):
+        self.game_state = 0
+        for r,c in self.alive:
+            self.toggle_tile(r,c)
+        self.alive.clear()
+
+    def update(self, dt):
+        if self.game_state:
+            self.take_step()
+        self.update_snapshot()
+
+    def update_snapshot(self):
+        for (r,c), life in self.update_q.items():
+            if self.sprites[(r,c)].life:
+                self.alive.add((r,c))
+            elif (r,c) in self.alive:
+                self.alive.remove((r,c))
+            self.snapshot[r][c] = life
+        self.update_q.clear()
+        if len(self.alive) == 0:
+            self.game_state = 0
 
     def toggle_tile(self, r, c):
         self.sprites[(r,c)].life = 1 - self.sprites[(r,c)].life
@@ -55,11 +79,17 @@ class GameOfLife(pyglet.window.Window):
         else:
             self.update_q[(r,c)] = self.sprites[(r,c)].life
 
-    def update(self, dt):
-        if self.game_state:
-            self.take_step()
-        self.update_snapshot()
+    def take_step(self):
+        candidates = set()
+        for key in self.alive:
+            r, c = key
+            candidates = candidates.union(self.get_neighbors(r,c))
 
+        for r,c in candidates:
+            cur_state = self.snapshot[r][c]
+            new_state = self.get_new_state(r,c)
+            if new_state != cur_state:
+                self.toggle_tile(r,c)
 
     def get_neighbors(self, r, c):
         neighbors = set()    
@@ -84,27 +114,6 @@ class GameOfLife(pyglet.window.Window):
             new_state = 1
         return new_state
         
-    def take_step(self):
-        candidates = set()
-        for key in self.alive:
-            r, c = key
-            candidates = candidates.union(self.get_neighbors(r,c))
-            
-        for r,c in candidates:
-            cur_state = self.snapshot[r][c]
-            new_state = self.get_new_state(r,c)
-            if new_state != cur_state:
-                self.toggle_tile(r,c)
-
-    def update_snapshot(self):
-        for (r,c), life in self.update_q.items():
-            if self.sprites[(r,c)].life:
-                self.alive.add((r,c))
-            elif (r,c) in self.alive:
-                self.alive.remove((r,c))
-            self.snapshot[r][c] = life
-        self.update_q.clear()
-
 
 if __name__ == "__main__":
     pyglet.resource.path = [SPRITES_DIR]
@@ -112,6 +121,6 @@ if __name__ == "__main__":
     width, height = WIN_SIZE
     width = (width // SPRITE_WIDTH) * SPRITE_WIDTH
     height = (height // SPRITE_HEIGHT) * SPRITE_HEIGHT
-    gol = GameOfLife(width, height, caption="Game of Life: Activate tiles and hit spacebar!")
-    pyglet.clock.schedule_interval(gol.update, interval=0.5)
+    gol = GameOfLife(width, height, caption="Game of Life: select tiles, hit Enter to start/stop, Space to clear")
+    pyglet.clock.schedule_interval(gol.update, interval=0.2)
     pyglet.app.run()
