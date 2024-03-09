@@ -2,6 +2,7 @@ import pyglet
 from settings import *
 from pyglet.window import mouse
 from pyglet.window import key
+import random
 
 class BlackTile(pyglet.sprite.Sprite):
     def __init__(self, **kwargs):
@@ -16,10 +17,11 @@ class BlueTile(pyglet.sprite.Sprite):
         self.life = 0
 
 class GameOfLife(pyglet.window.Window):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, seed=None, **kwargs):
         super(GameOfLife, self).__init__(*args, **kwargs)
         self.batch = pyglet.graphics.Batch()
         self.game_state = 0
+        self.seed = seed
         self.black_tile_img = pyglet.resource.image("TileBlack.png")
         self.blue_tile_img = pyglet.resource.image("TileBlue.png")
         self.imgs = {0: self.blue_tile_img, 1:self.black_tile_img}
@@ -32,7 +34,8 @@ class GameOfLife(pyglet.window.Window):
             for c in range(self.cols):
                 x, y = c*SPRITE_WIDTH, r*SPRITE_HEIGHT
                 self.sprites[(r,c)] = BlueTile(x=x, y=y, batch=self.batch)
-    
+        self.seed_init()
+
     def on_mouse_press(self, x, y, button, modifiers):
         if self.game_state == 0 and (button & mouse.LEFT):
             c = x // SPRITE_WIDTH
@@ -49,11 +52,18 @@ class GameOfLife(pyglet.window.Window):
         self.clear()
         self.batch.draw()
 
+    def seed_init(self):
+        if isinstance(self.seed, int) and 0<self.seed<=self.rows*self.cols:
+            while len(self.update_q) < self.seed:
+                r, c = random.randint(0, self.rows-1), random.randint(0, self.cols-1)
+                self.toggle_tile(r,c) 
+
     def clear_board(self):
         self.game_state = 0
         for r,c in self.alive:
             self.toggle_tile(r,c)
         self.alive.clear()
+        self.seed_init()
 
     def update(self, dt):
         if self.game_state:
@@ -121,6 +131,6 @@ if __name__ == "__main__":
     width, height = WIN_SIZE
     width = (width // SPRITE_WIDTH) * SPRITE_WIDTH
     height = (height // SPRITE_HEIGHT) * SPRITE_HEIGHT
-    gol = GameOfLife(width, height, caption="Game of Life: select tiles, hit Enter to start/stop, Space to clear")
+    gol = GameOfLife(width, height, seed=50, caption="Game of Life: select tiles, hit Enter to start/stop, Space to clear")
     pyglet.clock.schedule_interval(gol.update, interval=0.2)
     pyglet.app.run()
