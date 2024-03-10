@@ -55,7 +55,7 @@ class GameOfLife(pyglet.window.Window):
     def seed_init(self):
         if isinstance(self.seed, int) and 0<self.seed<=self.rows*self.cols:
             while len(self.update_q) < self.seed:
-                r, c = random.randint(0, self.rows-1), random.randint(0, self.cols-1)
+                r, c = random.randint(20, 30), random.randint(20, 30)
                 self.toggle_tile(r,c) 
 
     def clear_board(self):
@@ -132,5 +132,5 @@ if __name__ == "__main__":
     width = (width // SPRITE_WIDTH) * SPRITE_WIDTH
     height = (height // SPRITE_HEIGHT) * SPRITE_HEIGHT
     gol = GameOfLife(width, height, seed=50, caption="Game of Life: select tiles, hit Enter to start/stop, Space to clear")
-    pyglet.clock.schedule_interval(gol.update, interval=0.2)
+    pyglet.clock.schedule_interval(gol.update, interval=0.1)
     pyglet.app.run()
