@@ -5,18 +5,33 @@ from pyglet.window import key
 import random
 
 class BlackTile(pyglet.sprite.Sprite):
+    """
+    Class BlackTile to create new black tile sprites
+    """
     def __init__(self, **kwargs):
         img = pyglet.resource.image("TileBlack.png")
         super(BlackTile, self).__init__(img, **kwargs)
         self.life = 1
 
 class BlueTile(pyglet.sprite.Sprite):
+    """
+    Class BlueTile to create new black tile sprites
+    """
     def __init__(self, **kwargs):
         img = pyglet.resource.image("TileBlue.png")
         super(BlueTile, self).__init__(img, **kwargs)
         self.life = 0
 
 class GameOfLife(pyglet.window.Window):
+    """
+    Class GameOfLife creates new game/board of Conway's game of life.
+    
+    Rules:
+    1. A live cell dies if it has fewer than two live neighbors.
+    2. A live cell with two or three live neighbors lives on to the next generation.
+    3. A live cell with more than three live neighbors dies.
+    4. A dead cell will be brought back to live if it has exactly three live neighbors.
+    """
     def __init__(self, *args, seed=None, **kwargs):
         super(GameOfLife, self).__init__(*args, **kwargs)
         self.batch = pyglet.graphics.Batch()
@@ -37,28 +52,55 @@ class GameOfLife(pyglet.window.Window):
         self.seed_init()
 
     def on_mouse_press(self, x, y, button, modifiers):
+        """
+        on_mouse_press checks for mouse left click and draws brings a cell to life.       
+        :param x: x coordinate of mouse click
+        :param y: y coordinate of mouse click
+        :param button: the button on mouse that was pressed
+        :param modifiers: the modifier key pressed on keyboard (ctrl, shift, etc)
+        :return: None
+        """
         if self.game_state == 0 and (button & mouse.LEFT):
             c = x // SPRITE_WIDTH
             r = y // SPRITE_HEIGHT
             self.toggle_tile(r,c)
 
     def on_key_press(self, symbol, modifiers):
+        """
+        on_key_press checks for space key press and clears the board
+        :param symbol: the pressed key symbol passed to this function from the OS
+        :param modifiers: modifier key pressed like ctrl or shift 
+        :return: None
+        """
+        # Return to play/pause, Space to clear
         if symbol & key.RETURN:
             self.game_state = 1 - self.game_state
         elif symbol & key.SPACE:
             self.clear_board()
 
     def on_draw(self):
+        """
+        on_draw call to redraw window contents, called every frame
+        :return: None
+        """
         self.clear()
         self.batch.draw()
 
     def seed_init(self):
+        """
+        seed_init to initialize board with live cells.
+        :return: None
+        """
         if isinstance(self.seed, int) and 0<self.seed<=self.rows*self.cols:
             while len(self.update_q) < self.seed:
                 r, c = random.randint(20, 30), random.randint(20, 30)
                 self.toggle_tile(r,c) 
 
     def clear_board(self):
+        """
+        clear_board to clear out live cells and reset all board parameters.
+        :return: None
+        """
         self.game_state = 0
         for r,c in self.alive:
             self.toggle_tile(r,c)
@@ -66,11 +108,20 @@ class GameOfLife(pyglet.window.Window):
         self.seed_init()
 
     def update(self, dt):
+        """
+        update method to call every dt seconds and update board state.
+        :param dt: passed implicitly by pyglet clock
+        :return: None
+        """
         if self.game_state:
             self.take_step()
         self.update_snapshot()
 
     def update_snapshot(self):
+        """
+        update_snapshot updates the buffered board state to be used in next generation
+        :return: None
+        """
         for (r,c), life in self.update_q.items():
             if self.sprites[(r,c)].life:
                 self.alive.add((r,c))
@@ -82,6 +133,12 @@ class GameOfLife(pyglet.window.Window):
             self.game_state = 0
 
     def toggle_tile(self, r, c):
+        """
+        toggle_tile toggles the cell, alive->dead, dead->alive
+        :param r: the row number on the board
+        :param c: the column number on the board
+        :return: None
+        """
         self.sprites[(r,c)].life = 1 - self.sprites[(r,c)].life
         self.sprites[(r,c)].image = self.imgs[self.sprites[(r,c)].life]
         if (r,c) in self.update_q:
@@ -90,6 +147,10 @@ class GameOfLife(pyglet.window.Window):
             self.update_q[(r,c)] = self.sprites[(r,c)].life
 
     def take_step(self):
+        """
+        take_step computes the next generation board state
+        :return: None
+        """
         candidates = set()
         for key in self.alive:
             r, c = key
@@ -102,6 +163,12 @@ class GameOfLife(pyglet.window.Window):
                 self.toggle_tile(r,c)
 
     def get_neighbors(self, r, c):
+        """
+        get_neighbors gets the neighbors of the cell with distance one
+        :param r: row of the cell
+        :param c: col of the cell
+        :return: set of neighbors
+        """
         neighbors = set()    
         for i in [-1, 0, 1]:
             for j in [-1, 0, 1]:
@@ -111,6 +178,12 @@ class GameOfLife(pyglet.window.Window):
         return neighbors
             
     def get_new_state(self, r, c):
+        """
+        get_new_state to get the new state of the cell
+        :param r: the row no. of the current cell
+        :param c: the col no. of the current cell
+        :return: returns the new state of the cell, alive or dead
+        """
         neighbors = self.get_neighbors(r,c)
         neighbors.remove((r,c))
         live_neighbor_count = 0
@@ -126,6 +199,12 @@ class GameOfLife(pyglet.window.Window):
         
 
 if __name__ == "__main__":
+    """
+    main block 
+    set resource path for sprites
+    adjust window size to fit in integral no. of sprites
+    run pyglet app
+    """
     pyglet.resource.path = [SPRITES_DIR]
     pyglet.resource.reindex()
     width, height = WIN_SIZE
