@@ -3,6 +3,7 @@ from settings import *
 from pyglet.window import mouse
 from pyglet.window import key
 import random
+import argparse
 
 class BlackTile(pyglet.sprite.Sprite):
     """
@@ -93,7 +94,11 @@ class GameOfLife(pyglet.window.Window):
         """
         if isinstance(self.seed, int) and 0<self.seed<=self.rows*self.cols:
             while len(self.update_q) < self.seed:
-                r, c = random.randint(20, 30), random.randint(20, 30)
+                rlow = self.rows//2 - 5
+                rhigh = rlow + 9
+                clow = self.cols//2 - 5
+                chigh = clow + 9
+                r, c = random.randint(rlow, rhigh), random.randint(clow, chigh)
                 self.toggle_tile(r,c) 
 
     def clear_board(self):
@@ -196,7 +201,15 @@ class GameOfLife(pyglet.window.Window):
         elif live_neighbor_count == 2 and is_alive:
             new_state = 1
         return new_state
-        
+
+def get_args():
+    """
+    get_args to get command line arguments
+    """
+    parser = argparse.ArgumentParser(description="Conway's Game of Life!")
+    parser.add_argument('--seed', '-s', metavar='S', type=int, default=None, help='Initial number of live cells.')
+
+    return parser.parse_args()
 
 if __name__ == "__main__":
     """
@@ -205,11 +218,12 @@ if __name__ == "__main__":
     adjust window size to fit in integral no. of sprites
     run pyglet app
     """
+    args = get_args()
     pyglet.resource.path = [SPRITES_DIR]
     pyglet.resource.reindex()
     width, height = WIN_SIZE
     width = (width // SPRITE_WIDTH) * SPRITE_WIDTH
     height = (height // SPRITE_HEIGHT) * SPRITE_HEIGHT
-    gol = GameOfLife(width, height, seed=50, caption="Game of Life: select tiles, hit Enter to start/stop, Space to clear")
+    gol = GameOfLife(width, height, seed=args.seed, caption="Game of Life: select tiles, hit Enter to start/stop, Space to reset")
     pyglet.clock.schedule_interval(gol.update, interval=0.1)
     pyglet.app.run()
