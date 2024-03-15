@@ -208,7 +208,8 @@ def get_args():
     """
     parser = argparse.ArgumentParser(description="Conway's Game of Life!")
     parser.add_argument('--seed', '-s', metavar='S', type=int, default=None, help='Initial number of live cells.')
-
+    parser.add_argument('--width', metavar='W', type=int, default=960, help='Width of the window.')
+    parser.add_argument('--height', metavar='H', type=int, default=960, help='Height of the window.')
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -221,9 +222,9 @@ if __name__ == "__main__":
     args = get_args()
     pyglet.resource.path = [SPRITES_DIR]
     pyglet.resource.reindex()
-    width, height = WIN_SIZE
+    width, height = args.width, args.height
     width = (width // SPRITE_WIDTH) * SPRITE_WIDTH
     height = (height // SPRITE_HEIGHT) * SPRITE_HEIGHT
     gol = GameOfLife(width, height, seed=args.seed, caption="Game of Life: select tiles, hit Enter to start/stop, Space to reset")
-    pyglet.clock.schedule_interval(gol.update, interval=0.1)
+    pyglet.clock.schedule_interval(gol.update, interval=0.2)
     pyglet.app.run()
