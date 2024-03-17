@@ -25,3 +25,9 @@ The default window size is 960x960. You can change few settings in settings.py f
 - Use mouse left click to toggle cell state. 
 - Use Enter to start/pause/resume the animation.
 - Use Sapcebar to reset the board.
+
+# Sample boards
+
+Still lives and oscillators
+
+![Sample1](https://github.com/navti/projects/blob/main/game-of-life/assets/samples/sample1.GIF)
