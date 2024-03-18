@@ -28,6 +28,17 @@ The default window size is 960x960. You can change few settings in settings.py f
 
 # Sample boards
 
-Still lives and oscillators
+### Still lives and oscillators
 
-![Sample1](https://github.com/navti/projects/blob/main/game-of-life/assets/samples/sample1.GIF)
+<img src="assets/samples/sample1.GIF" width="200">
+
+### The Glider, Spaceship and The Weekender
+<img src="assets/samples/sample2.GIF" width="200">
+
+## License
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+
+# Get in touch
+[![email](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:navintiwari08@gmail.com)
+[![linkedin](https://img.shields.io/badge/linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/navti/)
+
