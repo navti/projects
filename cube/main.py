@@ -5,13 +5,17 @@ from settings import *
 from specs import *
 import numpy as np
 import ctypes
+from shaders import *
 
 class App:
-    def __init__(self):
+    def __init__(self, vs_filepath, fs_filepath):
+        self.vertex_shader_filepath = vs_filepath
+        self.fragment_shader_filepath = fs_filepath
+        self._g_quit = False
+        self._shader_program = None
         self._glfw_init()
         self._gl_init()
-        self._g_quit = False
-
+    
     def _gl_init(self):
         glClearColor(0,0,0,1)
 
@@ -47,7 +51,7 @@ class App:
         glBindVertexArray(vertex_array)
 
         # Attribute 0 - position buffer
-        attribute_index = 0
+        attribute_index_0 = 0
         size = 4
         stride = 0 # or 4*4 = 16
         offset = 0
@@ -58,16 +62,16 @@ class App:
                      positions.nbytes,
                      positions,
                      GL_STATIC_DRAW)
-        glVertexAttribPointer(attribute_index,
+        glVertexAttribPointer(attribute_index_0,
                               size,
                               GL_FLOAT,
                               GL_FALSE,
                               stride,
                               ctypes.c_void_p(offset))
-        glEnableVertexArrayAttrib(attribute_index)
+        glEnableVertexArrayAttrib(attribute_index_0)
 
         # Attribute 1 - color buffer
-        attribute_index = 1
+        attribute_index_1 = 1
         size = 4
         stride = 0 # or 4*4 = 16
         offset = 0
@@ -78,14 +82,22 @@ class App:
                      colors.nbytes,
                      colors,
                      GL_STATIC_DRAW)
-        glVertexAttribPointer(attribute_index,
+        glVertexAttribPointer(attribute_index_1,
                               size,
                               GL_FLOAT,
                               GL_FALSE,
                               stride,
                               ctypes.c_void_p(offset))
-        glEnableVertexArrayAttrib(attribute_index)
+        glEnableVertexArrayAttrib(attribute_index_1)
         
+        # cleanup
+        glBindVertexArray(0)
+        glDisableVertexArrayAttrib(attribute_index_0)
+        glDisableVertexArrayAttrib(attribute_index_1)
+
+    def _create_graphics_pipeline(self):
+        self._shader_program = create_shader_program(self.vertex_shader_filepath,
+                                                     self.fragment_shader_filepath)
 
     def run(self):
         """ main loop """
@@ -97,5 +109,7 @@ class App:
         self._quit(self.window)
 
 if __name__ == "__main__":
-    app = App()
+    vertex_shader_filepath = "./vertex_shader.txt"
+    fragment_shader_filepath = "./fragment_shader.txt"
+    app = App(vertex_shader_filepath, fragment_shader_filepath)
     app.run()
