@@ -10,8 +10,8 @@ import sys
 # add to path variable so module can be found
 cube_dir = '/'.join(__file__.split('/')[:-1])
 shaders_dir = cube_dir+"/shaders"
-sys.path.append(cube_dir)
-sys.path.append(shaders_dir)
+# sys.path.append(cube_dir)
+# sys.path.append(shaders_dir)
 
 from shaders.shaders import *
 
@@ -24,10 +24,11 @@ class App:
         self._shader_program = None
         self.vertex_array = None
         self._glfw_init()
-        self._gl_init()
     
-    def _gl_init(self):
-        glClearColor(0,0,0,1)
+    def _gl_clear(self):
+        glClearColor(1,1,1,1)
+        glClear(GL_COLOR_BUFFER_BIT)
+        # glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 
     def _glfw_init(self):
         glfw.init()
@@ -38,7 +39,9 @@ class App:
         self.window = glfw.create_window(WINDOW_WIDTH, WINDOW_HEIGHT, "The Cube", None, None)
         glfw.make_context_current(self.window)
         glfwSetWindowCloseCallback(self.window, self._quit)
-    
+        self._gl_clear()
+        glfw.swap_buffers(self.window)
+
     def _quit(self, window):
         glfw.destroy_window(window)
         glfw.terminate()
@@ -48,11 +51,9 @@ class App:
             self._g_quit = True
         glfw.poll_events()
 
-    def _pre_draw(self):
-        glClear(GL_COLOR_BUFFER_BIT)
-
     def _draw(self):
-        pass
+        glBindVertexArray(self.vertex_array)
+        glDrawArrays(GL_LINE_LOOP, 0, 8)
 
     def _vertex_specification(self):
         positions, colors = get_cube_spec()
@@ -67,7 +68,7 @@ class App:
         offset = 0
         
         position_buffer = glGenBuffers(1)
-        glBindBuffer(position_buffer)
+        glBindBuffer(GL_ARRAY_BUFFER, position_buffer)
         glBufferData(GL_ARRAY_BUFFER,
                      positions.nbytes,
                      positions,
@@ -78,7 +79,7 @@ class App:
                               GL_FALSE,
                               stride,
                               ctypes.c_void_p(offset))
-        glEnableVertexArrayAttrib(attribute_index_0)
+        glEnableVertexAttribArray(attribute_index_0)
 
         # Attribute 1 - color buffer
         attribute_index_1 = 1
@@ -87,7 +88,7 @@ class App:
         offset = 0
         
         color_buffer = glGenBuffers(1)
-        glBindBuffer(color_buffer)
+        glBindBuffer(GL_ARRAY_BUFFER, color_buffer)
         glBufferData(GL_ARRAY_BUFFER,
                      colors.nbytes,
                      colors,
@@ -98,12 +99,12 @@ class App:
                               GL_FALSE,
                               stride,
                               ctypes.c_void_p(offset))
-        glEnableVertexArrayAttrib(attribute_index_1)
+        glEnableVertexAttribArray(attribute_index_1)
         
         # cleanup
         glBindVertexArray(0)
-        glDisableVertexArrayAttrib(attribute_index_0)
-        glDisableVertexArrayAttrib(attribute_index_1)
+        glDisableVertexAttribArray(attribute_index_0)
+        glDisableVertexAttribArray(attribute_index_1)
 
     def _create_graphics_pipeline(self):
         self._shader_program = create_shader_program(self.vertex_shader_filepath,
@@ -116,13 +117,13 @@ class App:
         """ main loop """
         while not self._g_quit:
             self._poll_input()
-            self._pre_draw()
+            self._gl_clear()
             self._draw()
             glfw.swap_buffers(self.window)
         self._quit(self.window)
 
 if __name__ == "__main__":
-    vertex_shader_filepath = "./vertex_shader.txt"
-    fragment_shader_filepath = "./fragment_shader.txt"
+    vertex_shader_filepath = shaders_dir+"/vertex_shader.txt"
+    fragment_shader_filepath = shaders_dir+"/fragment_shader.txt"
     app = App(vertex_shader_filepath, fragment_shader_filepath)
     app.run()
