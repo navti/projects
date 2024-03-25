@@ -19,7 +19,7 @@ def get_cube_spec():
                               1, 0, 0, 1,
                               1, 0, 0, 1,
                               1, 0, 0, 1,
-                              1, 0, 0, 1], dtype=np.float32)
+                              1, 0, 0, 1], dtype=np.uint32)
     spec.append(vertex_colors)
 
     return spec

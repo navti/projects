@@ -1,0 +1,9 @@
+#version 460
+
+in vec4 _vertex_color_rgba;
+out vec4 _fragment_color_rgba;
+
+void main()
+{
+    _fragment_color_rgba = _vertex_color_rgba;
+}

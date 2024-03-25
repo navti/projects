@@ -5,7 +5,16 @@ from settings import *
 from specs import *
 import numpy as np
 import ctypes
-from shaders import *
+import sys
+
+# add to path variable so module can be found
+cube_dir = '/'.join(__file__.split('/')[:-1])
+shaders_dir = cube_dir+"/shaders"
+sys.path.append(cube_dir)
+sys.path.append(shaders_dir)
+
+from shaders.shaders import *
+
 
 class App:
     def __init__(self, vs_filepath, fs_filepath):
@@ -13,6 +22,7 @@ class App:
         self.fragment_shader_filepath = fs_filepath
         self._g_quit = False
         self._shader_program = None
+        self.vertex_array = None
         self._glfw_init()
         self._gl_init()
     
@@ -47,8 +57,8 @@ class App:
     def _vertex_specification(self):
         positions, colors = get_cube_spec()
 
-        vertex_array = glGenVertexArrays(1)
-        glBindVertexArray(vertex_array)
+        self.vertex_array = glGenVertexArrays(1)
+        glBindVertexArray(self.vertex_array)
 
         # Attribute 0 - position buffer
         attribute_index_0 = 0
@@ -98,8 +108,11 @@ class App:
     def _create_graphics_pipeline(self):
         self._shader_program = create_shader_program(self.vertex_shader_filepath,
                                                      self.fragment_shader_filepath)
+        glUseProgram(self._shader_program)
 
     def run(self):
+        self._vertex_specification()
+        self._create_graphics_pipeline()
         """ main loop """
         while not self._g_quit:
             self._poll_input()
