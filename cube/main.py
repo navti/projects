@@ -23,12 +23,12 @@ class App:
         self._g_quit = False
         self._shader_program = None
         self.vertex_array = None
+        self.attrib_buffer = {}
         self._glfw_init()
     
-    def _gl_clear(self):
-        glClearColor(1,1,1,1)
-        glClear(GL_COLOR_BUFFER_BIT)
-        # glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+    def _gl_init(self):
+        self._gl_clear()
+        glEnable(GL_DEPTH_TEST)
 
     def _glfw_init(self):
         glfw.init()
@@ -39,8 +39,14 @@ class App:
         self.window = glfw.create_window(WINDOW_WIDTH, WINDOW_HEIGHT, "The Cube", None, None)
         glfw.make_context_current(self.window)
         glfwSetWindowCloseCallback(self.window, self._quit)
-        self._gl_clear()
+        self._gl_init()
         glfw.swap_buffers(self.window)
+
+    def _gl_clear(self):
+        glClearColor(1,1,1,1)
+        glClear(GL_COLOR_BUFFER_BIT)
+        glClear(GL_DEPTH_BUFFER_BIT)
+        # glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 
     def _quit(self, window):
         glfw.destroy_window(window)
@@ -53,58 +59,42 @@ class App:
 
     def _draw(self):
         glBindVertexArray(self.vertex_array)
+        # glDrawArrays(GL_POINTS, 0, 8)
         glDrawArrays(GL_LINE_LOOP, 0, 8)
+        # glDrawArrays(GL_TRIANGLES, 0, 8)
 
     def _vertex_specification(self):
         positions, colors = get_cube_spec()
+        self.attrib_buffer[0] = positions
+        self.attrib_buffer[1] = colors
 
         self.vertex_array = glGenVertexArrays(1)
         glBindVertexArray(self.vertex_array)
 
-        # Attribute 0 - position buffer
-        attribute_index_0 = 0
-        size = 4
-        stride = 0 # or 4*4 = 16
-        offset = 0
-        
-        position_buffer = glGenBuffers(1)
-        glBindBuffer(GL_ARRAY_BUFFER, position_buffer)
-        glBufferData(GL_ARRAY_BUFFER,
-                     positions.nbytes,
-                     positions,
-                     GL_STATIC_DRAW)
-        glVertexAttribPointer(attribute_index_0,
-                              size,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              stride,
-                              ctypes.c_void_p(offset))
-        glEnableVertexAttribArray(attribute_index_0)
-
-        # Attribute 1 - color buffer
-        attribute_index_1 = 1
-        size = 4
-        stride = 0 # or 4*4 = 16
-        offset = 0
-        
-        color_buffer = glGenBuffers(1)
-        glBindBuffer(GL_ARRAY_BUFFER, color_buffer)
-        glBufferData(GL_ARRAY_BUFFER,
-                     colors.nbytes,
-                     colors,
-                     GL_STATIC_DRAW)
-        glVertexAttribPointer(attribute_index_1,
-                              size,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              stride,
-                              ctypes.c_void_p(offset))
-        glEnableVertexAttribArray(attribute_index_1)
+        for attrib_id, buffer_data in self.attrib_buffer.items():
+            self._set_buffer(attrib_id, buffer_data)
         
         # cleanup
         glBindVertexArray(0)
-        glDisableVertexAttribArray(attribute_index_0)
-        glDisableVertexAttribArray(attribute_index_1)
+
+    def _set_buffer(self, attrib_idx, data):
+        size = 4
+        stride = 0 # or 4*4 = 16
+        offset = 0
+        
+        buffer = glGenBuffers(1)
+        glBindBuffer(GL_ARRAY_BUFFER, buffer)
+        glBufferData(GL_ARRAY_BUFFER,
+                     data.nbytes,
+                     data,
+                     GL_STATIC_DRAW)
+        glVertexAttribPointer(attrib_idx,
+                              size,
+                              GL_FLOAT,
+                              GL_FALSE,
+                              stride,
+                              ctypes.c_void_p(offset))
+        glEnableVertexAttribArray(attrib_idx)
 
     def _create_graphics_pipeline(self):
         self._shader_program = create_shader_program(self.vertex_shader_filepath,
