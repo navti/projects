@@ -6,6 +6,8 @@ from specs import *
 import numpy as np
 import ctypes
 import sys
+import pyrr
+import math
 
 # add to path variable so module can be found
 cube_dir = '/'.join(__file__.split('/')[:-1])
@@ -24,6 +26,9 @@ class App:
         self._shader_program = None
         self.vertex_array = None
         self.attrib_buffer = {}
+        self.model_transform = pyrr.matrix44.create_identity(dtype=np.float32)
+        self.view_transform = pyrr.matrix44.create_identity(dtype=np.float32)
+        self.projection_transform = pyrr.matrix44.create_identity(dtype=np.float32)
         self._glfw_init()
     
     def _gl_init(self):
@@ -43,7 +48,7 @@ class App:
         glfw.swap_buffers(self.window)
 
     def _gl_clear(self):
-        glClearColor(1,1,1,1)
+        glClearColor(0,0,0,1)
         glClear(GL_COLOR_BUFFER_BIT)
         glClear(GL_DEPTH_BUFFER_BIT)
         # glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -59,9 +64,13 @@ class App:
 
     def _draw(self):
         glBindVertexArray(self.vertex_array)
-        # glDrawArrays(GL_POINTS, 0, 8)
-        glDrawArrays(GL_LINE_LOOP, 0, 8)
+        # glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         # glDrawArrays(GL_TRIANGLES, 0, 8)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.idx_buffer)
+        glDrawElements(GL_TRIANGLES,
+                       self.indices.size,
+                       GL_UNSIGNED_INT,
+                       ctypes.c_void_p())
 
     def _vertex_specification(self):
         positions, colors = get_cube_spec()
@@ -74,6 +83,19 @@ class App:
         for attrib_id, buffer_data in self.attrib_buffer.items():
             self._set_buffer(attrib_id, buffer_data)
         
+        # index buffer
+        self.indices = np.array([0,1,2,0,3,2,
+                                 1,2,5,2,5,6,
+                                 3,2,6,3,7,6,
+                                 0,3,7,0,4,7,
+                                 4,7,6,4,5,6,
+                                 0,1,5,0,4,5], dtype=np.uint32)
+        self.idx_buffer = glGenBuffers(1)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.idx_buffer)
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                     self.indices.nbytes,
+                     self.indices,
+                     GL_STATIC_DRAW)
         # cleanup
         glBindVertexArray(0)
 
@@ -99,7 +121,35 @@ class App:
     def _create_graphics_pipeline(self):
         self._shader_program = create_shader_program(self.vertex_shader_filepath,
                                                      self.fragment_shader_filepath)
+        rotate_y_45 = pyrr.matrix44.create_from_y_rotation(math.radians(45), dtype=np.float32)
+        rotate_x_45 = pyrr.matrix44.create_from_x_rotation(math.radians(45), dtype=np.float32)
+        self.model_transform =  rotate_x_45 @ rotate_y_45
         glUseProgram(self._shader_program)
+        self.set_transforms()
+
+    def set_transforms(self):
+        glUseProgram(self._shader_program)
+
+        glUniformMatrix4fv(
+            glGetUniformLocation(self._shader_program, "model"),
+            1,
+            GL_FALSE,
+            self.model_transform
+        )
+
+        glUniformMatrix4fv(
+            glGetUniformLocation(self._shader_program, "view"),
+            1,
+            GL_FALSE,
+            self.view_transform
+        )
+
+        glUniformMatrix4fv(
+            glGetUniformLocation(self._shader_program, "projection"),
+            1,
+            GL_FALSE,
+            self.projection_transform
+        )
 
     def run(self):
         self._vertex_specification()
