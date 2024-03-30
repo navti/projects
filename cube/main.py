@@ -8,7 +8,6 @@ import ctypes
 import sys
 import pyrr
 import math
-import time
 
 # add to path variable so module can be found
 cube_dir = '/'.join(__file__.split('/')[:-1])
@@ -68,7 +67,7 @@ class App:
         # glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         # glDrawArrays(GL_TRIANGLES, 0, 8)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.idx_buffer)
-        glDrawElements(GL_TRIANGLES,
+        glDrawElements(GL_TRIANGLE_STRIP,
                        self.indices.size,
                        GL_UNSIGNED_INT,
                        ctypes.c_void_p())
@@ -85,12 +84,7 @@ class App:
             self._set_buffer(attrib_id, buffer_data)
         
         # index buffer
-        self.indices = np.array([0,1,2,0,3,2,
-                                 1,2,5,2,5,6,
-                                 3,2,6,3,7,6,
-                                 0,3,7,0,4,7,
-                                 4,7,6,4,5,6,
-                                 0,1,5,0,4,5], dtype=np.uint32)
+        self.indices = np.array([0,1,4,5,6,1,2,0,3,4,7,6,3,2], dtype=np.uint32)
         self.idx_buffer = glGenBuffers(1)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.idx_buffer)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER,
@@ -158,16 +152,19 @@ class App:
             self._poll_input()
             self._gl_clear()
             # translate to origin
-            translate_origin = pyrr.matrix44.create_from_translation(np.array([-0.5,-0.5,-0.5]), dtype=np.float32)
+            # translate_origin = pyrr.matrix44.create_from_translation(np.array([-0.5,-0.5, 0]), dtype=np.float32)
             scale = pyrr.matrix44.create_from_scale(np.array([0.5,0.5,0.5]), dtype=np.float32)
             rotate_x_45 = pyrr.matrix44.create_from_x_rotation(math.radians(45), dtype=np.float32)
-            rotate_y_45 = pyrr.matrix44.create_from_y_rotation(math.radians(45), dtype=np.float32)
             rotate_y = pyrr.matrix44.create_from_y_rotation(math.radians(angle), dtype=np.float32)
-            self.model_transform = rotate_y_45 @ translate_origin @ scale
+            view_transform = pyrr.matrix44.create_look_at(np.array([0,0,0.5],dtype=np.float32),
+                                                          np.array([0,0,0], dtype=np.float32),
+                                                          np.array([0,1,0],dtype=np.float32),
+                                                          dtype=np.float32)
+            self.model_transform = rotate_y @ rotate_x_45 @ scale
             self.set_transforms()
             self._draw()
             glfw.swap_buffers(self.window)
-            angle += 3
+            angle += 1
         self._quit(self.window)
 
 if __name__ == "__main__":
