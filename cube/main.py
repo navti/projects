@@ -8,6 +8,7 @@ import ctypes
 import sys
 import pyrr
 import math
+import time
 
 # add to path variable so module can be found
 cube_dir = '/'.join(__file__.split('/')[:-1])
@@ -51,7 +52,7 @@ class App:
         glClearColor(0,0,0,1)
         glClear(GL_COLOR_BUFFER_BIT)
         glClear(GL_DEPTH_BUFFER_BIT)
-        # glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 
     def _quit(self, window):
         glfw.destroy_window(window)
@@ -121,9 +122,6 @@ class App:
     def _create_graphics_pipeline(self):
         self._shader_program = create_shader_program(self.vertex_shader_filepath,
                                                      self.fragment_shader_filepath)
-        rotate_y_45 = pyrr.matrix44.create_from_y_rotation(math.radians(45), dtype=np.float32)
-        rotate_x_45 = pyrr.matrix44.create_from_x_rotation(math.radians(45), dtype=np.float32)
-        self.model_transform =  rotate_x_45 @ rotate_y_45
         glUseProgram(self._shader_program)
         self.set_transforms()
 
@@ -154,12 +152,22 @@ class App:
     def run(self):
         self._vertex_specification()
         self._create_graphics_pipeline()
+        angle = 0
         """ main loop """
         while not self._g_quit:
             self._poll_input()
             self._gl_clear()
+            # translate to origin
+            translate_origin = pyrr.matrix44.create_from_translation(np.array([-0.5,-0.5,-0.5]), dtype=np.float32)
+            scale = pyrr.matrix44.create_from_scale(np.array([0.5,0.5,0.5]), dtype=np.float32)
+            rotate_x_45 = pyrr.matrix44.create_from_x_rotation(math.radians(45), dtype=np.float32)
+            rotate_y_45 = pyrr.matrix44.create_from_y_rotation(math.radians(45), dtype=np.float32)
+            rotate_y = pyrr.matrix44.create_from_y_rotation(math.radians(angle), dtype=np.float32)
+            self.model_transform = rotate_y_45 @ translate_origin @ scale
+            self.set_transforms()
             self._draw()
             glfw.swap_buffers(self.window)
+            angle += 3
         self._quit(self.window)
 
 if __name__ == "__main__":
