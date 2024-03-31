@@ -49,7 +49,7 @@ class App:
         glfw.swap_buffers(self.window)
 
     def _gl_clear(self):
-        glClearColor(0,0,0,1)
+        glClearColor(0, 0, 0, 1)
         glClear(GL_COLOR_BUFFER_BIT)
         glClear(GL_DEPTH_BUFFER_BIT)
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -159,7 +159,7 @@ class App:
             # pyrr gives matrix that should be post multiplied
             self.model_transform = scale @ rotate_y @ translate
             # camera transform: world space -> camera space
-            eye = [0, 5, 5]
+            eye = [0, 1, 1]
             target = [0, 0, 0]
             up = [0, 1, 0]
             self.view_transform = pyrr.matrix44.create_look_at(np.array(eye),
@@ -173,7 +173,11 @@ class App:
             top = 1
             near = 0.5
             far = 20
-            self.projection_transform = pyrr.matrix44.create_orthogonal_projection(left, right, bottom, top, near, far, dtype=np.float32)
+            # self.projection_transform = pyrr.matrix44.create_orthogonal_projection(left, right, bottom, top, near, far, dtype=np.float32)
+            # perspective projection
+            fovy = 60
+            aspect_ratio = 1.0
+            self.projection_transform = pyrr.matrix44.create_perspective_projection(fovy, aspect_ratio, near, far, dtype=np.float32)
             # set pointers to transforms for vertex shader
             self.set_transforms()
             self._draw()
