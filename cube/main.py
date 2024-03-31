@@ -33,6 +33,7 @@ class App:
     
     def _gl_init(self):
         self._gl_clear()
+        # glEnable(GL_CULL_FACE)
         glEnable(GL_DEPTH_TEST)
 
     def _glfw_init(self):
@@ -64,7 +65,6 @@ class App:
 
     def _draw(self):
         glBindVertexArray(self.vertex_array)
-        # glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         # glDrawArrays(GL_TRIANGLES, 0, 8)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.idx_buffer)
         glDrawElements(GL_TRIANGLE_STRIP,
@@ -151,20 +151,34 @@ class App:
         while not self._g_quit:
             self._poll_input()
             self._gl_clear()
-            # translate to origin
-            # translate_origin = pyrr.matrix44.create_from_translation(np.array([-0.5,-0.5, 0]), dtype=np.float32)
-            scale = pyrr.matrix44.create_from_scale(np.array([0.5,0.5,0.5]), dtype=np.float32)
-            rotate_x_45 = pyrr.matrix44.create_from_x_rotation(math.radians(45), dtype=np.float32)
+            translate_vector = [0, 0, 0]
+            scale_vector = [0.5, 0.5, 0.5]
+            scale = pyrr.matrix44.create_from_scale(np.array(scale_vector), dtype=np.float32)
+            translate = pyrr.matrix44.create_from_translation(np.array(translate_vector), dtype=np.float32)
             rotate_y = pyrr.matrix44.create_from_y_rotation(math.radians(angle), dtype=np.float32)
-            view_transform = pyrr.matrix44.create_look_at(np.array([0,0,0.5],dtype=np.float32),
-                                                          np.array([0,0,0], dtype=np.float32),
-                                                          np.array([0,1,0],dtype=np.float32),
-                                                          dtype=np.float32)
-            self.model_transform = rotate_y @ rotate_x_45 @ scale
+            # pyrr gives matrix that should be post multiplied
+            self.model_transform = scale @ rotate_y @ translate
+            # camera transform: world space -> camera space
+            eye = [0, 5, 5]
+            target = [0, 0, 0]
+            up = [0, 1, 0]
+            self.view_transform = pyrr.matrix44.create_look_at(np.array(eye),
+                                           np.array(target),
+                                           np.array(up),
+                                           dtype=np.float32)
+            # orthogonal projection: defines viewing prism, camera space -> NDC
+            left = -1
+            right = 1
+            bottom = -1
+            top = 1
+            near = 0.5
+            far = 20
+            self.projection_transform = pyrr.matrix44.create_orthogonal_projection(left, right, bottom, top, near, far, dtype=np.float32)
+            # set pointers to transforms for vertex shader
             self.set_transforms()
             self._draw()
             glfw.swap_buffers(self.window)
-            angle += 1
+            angle -= 1
         self._quit(self.window)
 
 if __name__ == "__main__":
