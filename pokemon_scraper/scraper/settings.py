@@ -86,9 +86,13 @@ FAKEUSERAGENT_PROVIDERS = [
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "scraper.pipelines.ScraperPipeline": 300,
-#}
+ITEM_PIPELINES = {
+   "scraper.pipelines.PokemonScraperPipeline": 300,
+}
+
+FEEDS = {
+    'pokemon_bundle.csv': {'format': 'csv', 'overwrite': True}
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

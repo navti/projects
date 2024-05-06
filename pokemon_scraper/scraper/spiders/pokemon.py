@@ -1,19 +1,23 @@
 import scrapy
-from collections import defaultdict
+from scraper.items import PokemonItem
 
 class PokemonSpider(scrapy.Spider):
     name = "pokemon"
     allowed_domains = ["www.pokemon.com"]
     base_url = "https://www.pokemon.com"
     first_relative = "/us/pokedex/bulbasaur"
-    # first_relative = "/us/pokedex/pidgeotto"
     start_urls = [base_url+first_relative]
-    pokemons = defaultdict(list)
 
     def start_requests(self):
         yield scrapy.Request(url=self.start_urls[0], callback=self.response_parser)
 
     def response_parser(self, response):
+        failed = False
+        failed = response.css("div.pokedex-pokemon-pagination-title").get() == None
+        if failed:
+            self.logger.info(f"RESPONSE: <<<<<<<<<<< failed to fetch content! Maybe you are blocked!! >>>>>>>>>>>>")
+            return
+
         pagination_title = response.css("div.pokedex-pokemon-pagination-title")
         name_id = pagination_title.css("::text").getall()
         info = response.css(".info.match-height-tablet")
@@ -39,27 +43,30 @@ class PokemonSpider(scrapy.Spider):
         version_x = response.css("div.version-descriptions p.version-x::text").get().strip()
         version_y = response.css("div.version-descriptions p.version-y::text").get().strip()
 
-        poke = {
-            'id': name_id[2].strip(),
-            'name': name_id[1].strip(),
-            'height': height, # info[0].css(".attribute-value::text").get(),
-            'weight': weight, # info[1].css(".attribute-value::text").get(),
-            'gender': gender,
-            'category': category, # info[3].css(".attribute-value::text").get(),
-            'abilities': abilities, # info[4].css(".attribute-value::text").get(),
-            'type': types,
-            'weakness': weaknesses,
-            'stats_hp': hp,
-            'stats_attack': attack,
-            'stats_defense': defense,
-            'stats_special_attack': special_attack,
-            'stats_special_defense': special_defense,
-            'stats_speed': speed,
-            'version_x_desc': version_x,
-            'version_y_desc': version_y,
-        }
+        poke = PokemonItem()
+        poke['id'] = name_id[2].strip()
+        poke['name'] = name_id[1].strip()
+        poke['height_cms'] = height
+        poke['weight_kgs'] = weight
+        poke['gender'] = gender
+        poke['category'] = category
+        poke['abilities'] = abilities
+        poke['type'] = types
+        poke['weakness'] = weaknesses
+        poke['stats_hp'] = hp
+        poke['stats_attack'] = attack
+        poke['stats_defense'] = defense
+        poke['stats_special_attack'] = special_attack
+        poke['stats_special_defense'] = special_defense
+        poke['stats_speed'] = speed
+        poke['version_x_desc'] = version_x
+        poke['version_y_desc'] = version_y
 
-        # next_url = response.css("div.pokedex-pokemon-pagination a.next::attr(href)").get()
-        # next_pokemon_link = self.base_url + next_url
+        # self.logger.info(f'PARSED RESPONSE: {poke}')
+        yield poke
 
-        self.logger.info(f'PARSED RESPONSE: {poke}')
+        next_url = response.css("div.pokedex-pokemon-pagination a.next::attr(href)").get()
+        next_pokemon_link = self.base_url + next_url
+
+        if next_pokemon_link:
+            yield response.follow(next_pokemon_link, callback=self.response_parser)
