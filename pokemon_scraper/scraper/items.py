@@ -9,6 +9,7 @@ class PokemonItem(scrapy.Item):
     # define the fields for your item here like:
     id = scrapy.Field()
     name = scrapy.Field()
+    img_url = scrapy.Field()
     height_cms = scrapy.Field()
     weight_kgs = scrapy.Field()
     gender = scrapy.Field()
