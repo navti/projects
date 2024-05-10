@@ -30,12 +30,12 @@ USER_AGENTS = [
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 500
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-#DOWNLOAD_DELAY = 3
+DOWNLOAD_DELAY = 0
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -47,10 +47,10 @@ ROBOTSTXT_OBEY = False
 #TELNETCONSOLE_ENABLED = False
 
 # Override the default request headers:
-#DEFAULT_REQUEST_HEADERS = {
-#    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-#    "Accept-Language": "en",
-#}
+DEFAULT_REQUEST_HEADERS = {
+   "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+   "Accept-Language": "en",
+}
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
@@ -70,6 +70,8 @@ DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.retry.RetryMiddleware': None,
     'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 400,
     'scrapy_fake_useragent.middleware.RetryUserAgentMiddleware': 401,
+    'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
+    'rotating_proxies.middlewares.BanDetectionMiddleware': 620,
 }
 
 FAKEUSERAGENT_PROVIDERS = [
@@ -77,6 +79,12 @@ FAKEUSERAGENT_PROVIDERS = [
     'scrapy_fake_useragent.providers.FakerProvider',  # if FakeUserAgentProvider fails, we'll use faker to generate a user-agent string for us
     'scrapy_fake_useragent.providers.FixedUserAgentProvider',  # fall back to USER_AGENT value
 ]
+
+# ROTATING_PROXY_LIST_PATH = './proxy_list.txt'
+ROTATING_PROXY_LIST_PATH = './proxies.txt'
+ROTATING_PROXY_PAGE_RETRY_TIMES = 100
+# ROTATING_PROXY_BACKOFF_BASE = 5
+# ROTATING_PROXY_BAN_POLICY = 'scraper.policy.PokemonBanPolicy'
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -91,12 +99,12 @@ ITEM_PIPELINES = {
 }
 
 FEEDS = {
-    'pokemon_bundle.csv': {'format': 'csv', 'overwrite': True}
+    'pokemon_bundle.csv': {'format': 'csv', 'overwrite': False}
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
-#AUTOTHROTTLE_ENABLED = True
+AUTOTHROTTLE_ENABLED = False
 # The initial download delay
 #AUTOTHROTTLE_START_DELAY = 5
 # The maximum download delay to be set in case of high latencies
