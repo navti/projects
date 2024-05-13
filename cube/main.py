@@ -5,7 +5,7 @@ from settings import *
 from specs import *
 import numpy as np
 import ctypes
-import sys
+from camera import Camera
 import pyrr
 import math
 
@@ -29,6 +29,7 @@ class App:
         self.model_transform = pyrr.matrix44.create_identity(dtype=np.float32)
         self.view_transform = pyrr.matrix44.create_identity(dtype=np.float32)
         self.projection_transform = pyrr.matrix44.create_identity(dtype=np.float32)
+        self._mouse_active = False
         self._glfw_init()
     
     def _gl_init(self):
@@ -45,6 +46,9 @@ class App:
         self.window = glfw.create_window(WINDOW_WIDTH, WINDOW_HEIGHT, "The Cube", None, None)
         glfw.make_context_current(self.window)
         glfwSetWindowCloseCallback(self.window, self._quit)
+        glfwSetScrollCallback(self.window, self._scroll_callback)
+        glfwSetMouseButtonCallback(self.window, self._mouse_button_callback)
+        glfwSetCursorEnterCallback(self.window, self._cursor_enter_callback)
         self._gl_init()
         glfw.swap_buffers(self.window)
 
@@ -117,10 +121,41 @@ class App:
         self._shader_program = create_shader_program(self.vertex_shader_filepath,
                                                      self.fragment_shader_filepath)
         glUseProgram(self._shader_program)
-        self.set_transforms()
+        # self.set_transforms()
+
+    # mouse events related callbacks
+    def _mouse_button_callback(self, window, button, action, mods):
+        pass
+
+    def _scroll_callback(self, window, x_offset, y_offset):
+        """
+        callback function to detect when mouse scroll wheel is activated and perform camera
+        back and forward motion.
+        :param window: the window object associated with the event
+        :param x_offset: x offset of the scroll
+        :param y_offset: y offset of the scroll
+        :return: None
+        """
+        if self._mouse_active:
+            if y_offset > 0:
+                self.camera.step_forward()
+            elif y_offset < 0:
+                self.camera.step_back()
+
+    def _cursor_enter_callback(self, window, entered):
+        """
+        detect when cursor enters or exits the window area
+        :param window: window in context
+        :param entered: signal True if cursor entered, False if cursor not entered
+        :return: None
+        """
+        if entered:
+            self._mouse_active = True
+        else:
+            self._mouse_active = False
 
     def set_transforms(self):
-        glUseProgram(self._shader_program)
+        # glUseProgram(self._shader_program)
 
         glUniformMatrix4fv(
             glGetUniformLocation(self._shader_program, "model"),
@@ -146,6 +181,7 @@ class App:
     def run(self):
         self._vertex_specification()
         self._create_graphics_pipeline()
+        self.camera = Camera()
         angle = 0
         """ main loop """
         while not self._g_quit:
@@ -162,10 +198,11 @@ class App:
             eye = [0, 1, 1]
             target = [0, 0, 0]
             up = [0, 1, 0]
-            self.view_transform = pyrr.matrix44.create_look_at(np.array(eye),
-                                           np.array(target),
-                                           np.array(up),
-                                           dtype=np.float32)
+            self.view_transform = self.camera.view_transform
+            # self.view_transform = pyrr.matrix44.create_look_at(np.array(eye),
+            #                                np.array(target),
+            #                                np.array(up),
+            #                                dtype=np.float32)
             # orthogonal projection: defines viewing prism, camera space -> NDC
             left = -1
             right = 1
