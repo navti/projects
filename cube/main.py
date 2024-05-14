@@ -22,16 +22,20 @@ class App:
     def __init__(self, vs_filepath, fs_filepath):
         self.vertex_shader_filepath = vs_filepath
         self.fragment_shader_filepath = fs_filepath
-        self._g_quit = False
         self._shader_program = None
         self.vertex_array = None
         self.attrib_buffer = {}
         self.model_transform = pyrr.matrix44.create_identity(dtype=np.float32)
         self.view_transform = pyrr.matrix44.create_identity(dtype=np.float32)
         self.projection_transform = pyrr.matrix44.create_identity(dtype=np.float32)
-        self._mouse_active = False
+        self._init_flags()
         self._glfw_init()
     
+    def _init_flags(self):
+        self._g_quit = False
+        self._mouse_active = False
+        self._mouse_left_press = False
+
     def _gl_init(self):
         self._gl_clear()
         # glEnable(GL_CULL_FACE)
@@ -39,18 +43,24 @@ class App:
 
     def _glfw_init(self):
         glfw.init()
+        self._set_glfw_hints()
+        self.window = glfw.create_window(WINDOW_WIDTH, WINDOW_HEIGHT, "The Cube", None, None)
+        glfw.make_context_current(self.window)
+        self._set_glfw_callbacks()
+        self._gl_init()
+        glfw.swap_buffers(self.window)
+
+    def _set_glfw_hints(self):
         glfw.window_hint(GLFW_CONTEXT_VERSION_MAJOR, GL_MAJOR)
         glfw.window_hint(GLFW_CONTEXT_VERSION_MINOR, GL_MINOR)
         glfw.window_hint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
         glfw.window_hint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE)
-        self.window = glfw.create_window(WINDOW_WIDTH, WINDOW_HEIGHT, "The Cube", None, None)
-        glfw.make_context_current(self.window)
+
+    def _set_glfw_callbacks(self):
         glfwSetWindowCloseCallback(self.window, self._quit)
         glfwSetScrollCallback(self.window, self._scroll_callback)
         glfwSetMouseButtonCallback(self.window, self._mouse_button_callback)
         glfwSetCursorEnterCallback(self.window, self._cursor_enter_callback)
-        self._gl_init()
-        glfw.swap_buffers(self.window)
 
     def _gl_clear(self):
         glClearColor(0, 0, 0, 1)
@@ -125,7 +135,10 @@ class App:
 
     # mouse events related callbacks
     def _mouse_button_callback(self, window, button, action, mods):
-        pass
+        if button == GLFW_MOUSE_BUTTON_LEFT and action == GLFW_PRESS:
+            self._mouse_left_press = True
+        elif button == GLFW_MOUSE_BUTTON_LEFT and action == GLFW_RELEASE:
+            self._mouse_left_press = False
 
     def _scroll_callback(self, window, x_offset, y_offset):
         """

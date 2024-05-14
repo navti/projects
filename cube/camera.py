@@ -7,7 +7,7 @@ class Camera:
     """
     # initialize camera vectors to defaults
     def __init__(self):
-        self.position = pyrr.Vector3(np.array([0, 0, 1], dtype=np.float32))
+        self.position = pyrr.Vector3(np.array([0, 1, 1], dtype=np.float32))
         self.up = pyrr.Vector3(np.array([0, 1, 0], dtype=np.float32))
         self.target = pyrr.Vector3(np.array([0, 0, 0], dtype=np.float32))
         self.dp = pyrr.Vector3(np.array([0, 0, 0.1], dtype=np.float32))
@@ -21,14 +21,21 @@ class Camera:
                                            np.array(self.target),
                                            np.array(self.up),
                                            dtype=np.float32)
+
+    def _get_dp(self):
+        scale = 0.1
+        return scale * pyrr.vector.normalise(self.target - self.position)
+
     # move in the direction of -z
     def step_forward(self):
-        self.position -= self.dp
+        self.dp = self._get_dp()
+        self.position += self.dp
         self.view_transform = self._get_view_transform()
         return self.view_transform
 
     # move in the direction of +z
     def step_back(self):
-        self.position += self.dp
+        self.dp = self._get_dp()
+        self.position -= self.dp
         self.view_transform = self._get_view_transform()
         return self.view_transform
