@@ -33,8 +33,7 @@ class App:
     
     def _init_flags(self):
         self._g_quit = False
-        self._mouse_active = False
-        self._mouse_left_press = False
+        self._clear_mouse_data()
 
     def _gl_init(self):
         self._gl_clear()
@@ -61,6 +60,7 @@ class App:
         glfwSetScrollCallback(self.window, self._scroll_callback)
         glfwSetMouseButtonCallback(self.window, self._mouse_button_callback)
         glfwSetCursorEnterCallback(self.window, self._cursor_enter_callback)
+        glfwSetCursorPosCallback(self.window, self._cursor_pos_callback)
 
     def _gl_clear(self):
         glClearColor(0, 0, 0, 1)
@@ -139,6 +139,23 @@ class App:
             self._mouse_left_press = True
         elif button == GLFW_MOUSE_BUTTON_LEFT and action == GLFW_RELEASE:
             self._mouse_left_press = False
+        self._cursor_x, self._cursor_y = glfwGetCursorPos(window)
+        # print(f"x: {self._cursor_x}, y: {self._cursor_y}")
+
+    def _cursor_pos_callback(self, window, xpos, ypos):
+        if self._mouse_left_press:
+            x_offset = self._cursor_x - xpos
+            y_offset = self._cursor_y - ypos
+            self._cursor_x = xpos
+            self._cursor_y = ypos
+            self.camera.rotate(x_offset, y_offset)
+            print(f"xpos: {x_offset}, ypos: {y_offset}")
+
+    def _clear_mouse_data(self):
+        self._cursor_x = 0
+        self._cursor_y = 0
+        self._mouse_left_press = False
+        self._mouse_active = False
 
     def _scroll_callback(self, window, x_offset, y_offset):
         """
@@ -165,6 +182,7 @@ class App:
         if entered:
             self._mouse_active = True
         else:
+            self._clear_mouse_data()
             self._mouse_active = False
 
     def set_transforms(self):
@@ -206,7 +224,7 @@ class App:
             translate = pyrr.matrix44.create_from_translation(np.array(translate_vector), dtype=np.float32)
             rotate_y = pyrr.matrix44.create_from_y_rotation(math.radians(angle), dtype=np.float32)
             # pyrr gives matrix that should be post multiplied
-            self.model_transform = scale @ rotate_y @ translate
+            self.model_transform = scale @ translate
             # camera transform: world space -> camera space
             eye = [0, 1, 1]
             target = [0, 0, 0]
