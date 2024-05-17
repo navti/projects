@@ -24,22 +24,39 @@ class Camera:
                                            dtype=np.float32)
 
     def _get_dp(self):
+        """
+        calculate delta position
+        calculate unit vector in direction of camera -> target
+        scale unit vector to get delta p
+        """
         scale = 0.1
         return scale * pyrr.vector.normalise(self.target - self.position)
 
     # move in the direction of -z
     def step_forward(self):
+        """
+        move towards the target and update camera view transform
+        """
         self.dp = self._get_dp()
         self.position += self.dp
         self._update_view_transform()
 
     # move in the direction of +z
     def step_back(self):
+        """
+        move away from the target and update camera view transform
+        """
         self.dp = self._get_dp()
         self.position -= self.dp
         self._update_view_transform()
 
     def rotate(self, x_offset, y_offset):
+        """
+        rotate camera about x and y axis based on x and y offsets
+        update camera position, up and transform data
+        :param x_offset: x offset from scroll action
+        :param y_offset: y offset from scroll action
+        """
         factor = 5.0
         x_axis = np.array([1, 0, 0], dtype=np.float32)
         y_axis = np.array([0, 1, 0], dtype=np.float32)
