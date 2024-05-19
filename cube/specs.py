@@ -22,4 +22,13 @@ def get_cube_spec():
                               0, 1, 0, 1], dtype=np.float32)
     spec.append(vertex_colors)
 
+    texture_coords = np.array([0.25, 0,
+                               0.50, 0,
+                               0.50, 1,
+                               0.25, 1,
+                               0.25, 1/3,
+                               0.50, 1/3,
+                               0.50, 2/3,
+                               0.25, 2/3], dtype=np.float32)
+    spec.append(texture_coords)
     return spec

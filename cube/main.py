@@ -3,6 +3,7 @@ from glfw.GLFW import *
 from OpenGL.GL import *
 from settings import *
 from specs import *
+from texture import Texture
 import numpy as np
 import ctypes
 from camera import Camera
@@ -11,6 +12,7 @@ import math
 
 cube_dir = '/'.join(__file__.split('/')[:-1])
 shaders_dir = cube_dir+"/shaders"
+textures_dir = cube_dir+"/textures"
 
 from shaders.shaders import *
 
@@ -20,7 +22,7 @@ class App:
     :param vs_filepath: vertex shader filepath
     :param fs_filepath: fragment shader filepath
     """
-    def __init__(self, vs_filepath, fs_filepath):
+    def __init__(self, vs_filepath, fs_filepath, tex_path):
         """
         App constructor, initialize flags and glfw
         """
@@ -34,6 +36,7 @@ class App:
         self.projection_transform = pyrr.matrix44.create_identity(dtype=np.float32)
         self._init_flags()
         self._glfw_init()
+        self.cubetex = Texture('cubetex', tex_path)
     
     def _init_flags(self):
         """
@@ -124,9 +127,10 @@ class App:
         set vertex specifications
         """
         # read cube specification
-        positions, colors = get_cube_spec()
+        positions, colors, texture_coords = get_cube_spec()
         self.attrib_buffer[0] = positions
         self.attrib_buffer[1] = colors
+        self.attrib_buffer[2] = texture_coords
         # generate vertex array object
         self.vertex_array = glGenVertexArrays(1)
         # bind vertex array object
@@ -156,7 +160,7 @@ class App:
         :param data: attribute data, like vertex positions, colors etc.
         :returns: None
         """
-        size = 4
+        size = 4 if attrib_idx < 2 else 2
         stride = 0 # or 4*4 = 16
         offset = 0
         
@@ -181,7 +185,12 @@ class App:
         self._shader_program = create_shader_program(self.vertex_shader_filepath,
                                                      self.fragment_shader_filepath)
         glUseProgram(self._shader_program)
-        # self.set_transforms()
+        self._set_texture()
+
+    def _set_texture(self):
+        self.cubetex.load_texture()
+        # using GL_TEXTURE0, hence that 0 as last param
+        glUniform1i(glGetUniformLocation(self._shader_program, "imageTexture"), 0)
 
     # mouse events related callbacks
     def _mouse_button_callback(self, window, button, action, mods):
@@ -309,10 +318,6 @@ class App:
             target = [0, 0, 0]
             up = [0, 1, 0]
             self.view_transform = self.camera.view_transform
-            # self.view_transform = pyrr.matrix44.create_look_at(np.array(eye),
-            #                                np.array(target),
-            #                                np.array(up),
-            #                                dtype=np.float32)
             # orthogonal projection: defines viewing prism, camera space -> NDC
             left = -1
             right = 1
@@ -335,5 +340,7 @@ class App:
 if __name__ == "__main__":
     vertex_shader_filepath = shaders_dir+"/vertex_shader.txt"
     fragment_shader_filepath = shaders_dir+"/fragment_shader.txt"
-    app = App(vertex_shader_filepath, fragment_shader_filepath)
+    tex_path = textures_dir+"/cubemaps.png"
+    # tex_path = textures_dir+"/tex.jpg"
+    app = App(vertex_shader_filepath, fragment_shader_filepath, tex_path)
     app.run()

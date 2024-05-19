@@ -2,15 +2,18 @@
 
 layout (location = 0) in vec4 _position_4d; // slot 0: xyzw
 layout (location = 1) in vec4 _color_rgba;  // slot 1: rgba
+layout (location = 2) in vec2 _tex_coord; // slot 2: x,y
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-out vec4 _vertex_color_rgba;
+out vec4 _frag_color_rgba;
+out vec2 _frag_tex_coord;
 
 void main()
 {
     gl_Position = projection * view * model * _position_4d;  // forward position to fragment shader
-    _vertex_color_rgba = _color_rgba;   // forward color to fragment shader
+    _frag_color_rgba = _color_rgba;   // forward color to fragment shader
+    _frag_tex_coord = _tex_coord; // forward tex coord to fragment shader
 }

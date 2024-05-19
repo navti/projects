@@ -58,8 +58,10 @@ class Camera:
         :param y_offset: y offset from scroll action
         """
         factor = 5.0
-        x_axis = np.array([1, 0, 0], dtype=np.float32)
-        y_axis = np.array([0, 1, 0], dtype=np.float32)
+        nx = 1 # if self.position.x > 0 else 1
+        ny = 1 # if self.position.y > 0 else 1
+        x_axis = np.array([nx, 0, 0], dtype=np.float32)
+        y_axis = np.array([0, ny, 0], dtype=np.float32)
         z_axis = np.array([0, 0, 1], dtype=np.float32)
         # about y axis, in xz plane
         yaw_degrees = x_offset / factor
@@ -70,4 +72,6 @@ class Camera:
         rotate_tr = yaw_tr @ pitch_tr
         self.position = self.position @ rotate_tr
         self.up = self.up @ rotate_tr
+        print(f"x: {self.position.x}, y: {self.position.y}, z: {self.position.z}")
+        print(f"up_x: {self.up.x}, up_y: {self.up.y}, up_z: {self.up.z}")
         self._update_view_transform()

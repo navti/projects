@@ -1,9 +1,13 @@
 #version 460
 
-in vec4 _vertex_color_rgba;
-out vec4 _fragment_color_rgba;
+in vec4 _frag_color_rgba;
+in vec2 _frag_tex_coord;
+
+out vec4 _color_rgba;
+
+uniform sampler2D imageTexture;
 
 void main()
 {
-    _fragment_color_rgba = _vertex_color_rgba;
+    _color_rgba = texture(imageTexture, _frag_tex_coord); // * _frag_color_rgba;
 }
