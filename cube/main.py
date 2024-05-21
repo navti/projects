@@ -117,7 +117,8 @@ class App:
         glBindVertexArray(self.vertex_array)
         # glDrawArrays(GL_TRIANGLES, 0, 8)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.idx_buffer)
-        glDrawElements(GL_TRIANGLE_STRIP,
+        # glDrawElements(GL_TRIANGLE_STRIP,
+        glDrawElements(GL_TRIANGLES,
                        self.indices.size,
                        GL_UNSIGNED_INT,
                        ctypes.c_void_p())
@@ -127,7 +128,8 @@ class App:
         set vertex specifications
         """
         # read cube specification
-        positions, colors, texture_coords = get_cube_spec()
+        # positions, colors, texture_coords = get_cube_spec()
+        positions, colors, texture_coords = get_textured_cube_spec()
         self.attrib_buffer[0] = positions
         self.attrib_buffer[1] = colors
         self.attrib_buffer[2] = texture_coords
@@ -140,7 +142,15 @@ class App:
             self._set_buffer(attrib_id, buffer_data)
         
         # index buffer
-        self.indices = np.array([0,1,4,5,6,1,2,0,3,4,7,6,3,2], dtype=np.uint32)
+        # self.indices = np.array([0,1,4,5,6,1,2,0,3,4,7,6,3,2], dtype=np.uint32)
+        # index buffer for textured cube
+        self.indices = np.array([8,10,4, 10,4,5,
+                                 5,4,6, 4,6,7,
+                                 6,7,11, 7,11,13,
+                                 1,5,2, 5,2,6,
+                                 0,1,3, 1,3,2,
+                                 4,9,7, 9,7,12,
+                                 ], dtype=np.uint32)
         # generate index buffer
         self.idx_buffer = glGenBuffers(1)
         # bind index buffer
