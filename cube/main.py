@@ -350,7 +350,7 @@ class App:
 if __name__ == "__main__":
     vertex_shader_filepath = shaders_dir+"/vertex_shader.txt"
     fragment_shader_filepath = shaders_dir+"/fragment_shader.txt"
-    tex_path = textures_dir+"/cubemaps.png"
-    # tex_path = textures_dir+"/tex.jpg"
+    # tex_path = textures_dir+"/cubemaps.png"
+    tex_path = textures_dir+"/tex.jpg"
     app = App(vertex_shader_filepath, fragment_shader_filepath, tex_path)
     app.run()

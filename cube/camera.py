@@ -72,6 +72,4 @@ class Camera:
         rotate_tr = yaw_tr @ pitch_tr
         self.position = self.position @ rotate_tr
         self.up = self.up @ rotate_tr
-        print(f"x: {self.position.x}, y: {self.position.y}, z: {self.position.z}")
-        print(f"up_x: {self.up.x}, up_y: {self.up.y}, up_z: {self.up.z}")
         self._update_view_transform()
