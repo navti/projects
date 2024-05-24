@@ -5,8 +5,10 @@ class Texture:
     def __init__(self, name, path):
         self.tex_path = path
         self.name = name
-        image = Image.open(path)
-        self.img = image.transpose(Image.FLIP_TOP_BOTTOM)
+        self.img = Image.open(path)
+        if 'tex' in path:
+            self.img = self.img.rotate(90, expand=True)
+        self.img = self.img.transpose(Image.FLIP_TOP_BOTTOM)
         self.img_buffer = self.img.convert('RGBA').tobytes()
 
     def load_texture(self):
@@ -16,7 +18,7 @@ class Texture:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.img.width, self.img.height,
                      0, GL_RGBA, GL_UNSIGNED_BYTE, self.img_buffer)
 

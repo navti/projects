@@ -321,8 +321,9 @@ class App:
             scale = pyrr.matrix44.create_from_scale(np.array(scale_vector), dtype=np.float32)
             translate = pyrr.matrix44.create_from_translation(np.array(translate_vector), dtype=np.float32)
             rotate_y = pyrr.matrix44.create_from_y_rotation(math.radians(angle), dtype=np.float32)
+            rotate_x = pyrr.matrix44.create_from_x_rotation(math.radians(angle), dtype=np.float32)
             # pyrr gives matrix that should be post multiplied
-            self.model_transform = scale @ translate
+            self.model_transform = scale @ rotate_y @ rotate_x @ translate
             # camera transform: world space -> camera space
             eye = [0, 1, 1]
             target = [0, 0, 0]
@@ -344,13 +345,13 @@ class App:
             self.set_transforms()
             self._draw()
             glfw.swap_buffers(self.window)
-            angle -= 1
+            angle -= 0.5
         self._quit(self.window)
 
 if __name__ == "__main__":
     vertex_shader_filepath = shaders_dir+"/vertex_shader.txt"
     fragment_shader_filepath = shaders_dir+"/fragment_shader.txt"
     # tex_path = textures_dir+"/cubemaps.png"
-    tex_path = textures_dir+"/tex.jpg"
+    tex_path = textures_dir+"/tex25.jpg"
     app = App(vertex_shader_filepath, fragment_shader_filepath, tex_path)
     app.run()
